@@ -21,15 +21,17 @@
             font-family: 'Nunito', sans-serif;
         }
 
-        /* Glassmorphism Header */
+        /* PERBAIKAN HEADER: Dibuat benar-benar sticky dan background lebih solid */
         .header-glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            position: sticky;
+            top: 0;
+            background: rgba(20, 18, 50, 0.85); /* Warna lebih padat biar gak tembus pandang banget */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             padding: 20px 0;
-            z-index: 1030;
+            z-index: 9999; /* Z-index ditinggikan agar selalu di posisi terdepan */
         }
 
         .header-title {
@@ -45,6 +47,7 @@
             position: relative;
             max-width: 600px;
             margin: 0 auto;
+            padding: 0 15px; /* Tambahan padding untuk layar HP */
         }
 
         .form-control {
@@ -82,10 +85,11 @@
             margin-bottom: 40px;
         }
 
-        /* Table Styling */
+        /* PERBAIKAN TABEL: Menghapus background putih bawaan bootstrap */
         .table {
             color: #e0e0e0;
             margin-bottom: 0;
+            --bs-table-bg: transparent; /* Paksa transparan */
         }
 
         .table > thead {
@@ -100,28 +104,20 @@
             letter-spacing: 0.5px;
         }
 
-        .table > thead > tr > th:first-child {
-            border-top-left-radius: 10px;
-        }
-
-        .table > thead > tr > th:last-child {
-            border-top-right-radius: 10px;
-        }
-
         .table > tbody > tr > td {
             border-color: rgba(255, 255, 255, 0.05);
             padding: 15px;
             vertical-align: middle;
+            background-color: transparent !important; /* Paksa baris menjadi transparan */
+            color: #ffffff; /* Paksa font warna putih */
         }
 
         .table > tbody > tr {
             transition: all 0.2s ease;
         }
 
-        .table > tbody > tr:hover {
-            background-color: rgba(255, 255, 255, 0.08) !important;
-            transform: scale(1.01);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        .table > tbody > tr:hover > td {
+            background-color: rgba(255, 255, 255, 0.1) !important;
         }
 
         /* Custom Scrollbar */
@@ -151,9 +147,9 @@
 
 <body>
 
-    <div class="header-glass sticky-top">
+    <div class="header-glass">
         <div class="container text-center">
-            <h4 class="header-title mb-3">Cek Area Akrab XL</h4>
+            <h4 class="header-title mb-2">Cek Area Akrab XL</h4>
             <p class="text-light opacity-75 small mb-3">Ketik nama kota atau kabupaten Anda di bawah ini</p>
             <div class="search-container">
                 <input type="text" id="searchInput" class="form-control" placeholder="🔍 Cari kota atau kabupaten..." onkeyup="searchTable()">
@@ -163,7 +159,7 @@
 
     <div class="container mt-4">
         <div class="table-wrapper table-responsive">
-            <table class="table table-borderless table-hover" id="dataTable">
+            <table class="table table-borderless" id="dataTable">
                 <thead>
                     <tr>
                         <th width="20%">Provinsi</th>
@@ -179,38 +175,33 @@
     </div>
 
     <script>
-        let areaData = []; // Variabel untuk menyimpan data dari JSON
+        let areaData = [];
 
-        // Eksekusi saat halaman dimuat
         document.addEventListener("DOMContentLoaded", () => {
-            // Ambil file data.json
             fetch('data.json')
                 .then(response => response.json())
                 .then(data => {
-                    areaData = data; // Simpan ke variabel
-                    document.getElementById('loader').style.display = 'none'; // Sembunyikan tulisan memuat
-                    renderTable(areaData); // Tampilkan data awal
+                    areaData = data;
+                    document.getElementById('loader').style.display = 'none';
+                    renderTable(areaData);
                 })
                 .catch(error => {
                     console.error('Gagal mengambil data:', error);
-                    document.getElementById('loader').innerText = 'Gagal memuat data. Pastikan file dijalankan di server.';
+                    document.getElementById('loader').innerText = 'Gagal memuat data. Pastikan file JSON tersedia.';
                 });
         });
 
-        // Fungsi untuk me-render/mencetak tabel
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = ''; // Kosongkan tabel dulu
+            tbody.innerHTML = ''; 
 
             data.forEach(item => {
-                // Atur warna badge otomatis berdasarkan Area
                 let badgeClass = 'bg-secondary';
                 if(item.area === 'Area 1') badgeClass = 'bg-info text-dark';
                 else if(item.area === 'Area 2') badgeClass = 'bg-primary';
                 else if(item.area === 'Area 3') badgeClass = 'bg-success';
                 else if(item.area === 'Area 4') badgeClass = 'bg-warning text-dark';
 
-                // Buat baris baru
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.provinsi}</td>
@@ -221,18 +212,13 @@
             });
         }
 
-        // Fungsi Pencarian yang diperbarui (Filter dari Array)
         function searchTable() {
             const input = document.getElementById('searchInput').value.toLowerCase();
-            
-            // Filter data yang cocok dengan ketikan
             const filteredData = areaData.filter(item => 
                 item.provinsi.toLowerCase().includes(input) ||
                 item.kota.toLowerCase().includes(input) ||
                 item.area.toLowerCase().includes(input)
             );
-            
-            // Tampilkan ulang tabel dengan data yang sudah disaring
             renderTable(filteredData);
         }
     </script>
