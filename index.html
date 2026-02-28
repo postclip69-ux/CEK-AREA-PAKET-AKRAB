@@ -21,17 +21,17 @@
             font-family: 'Nunito', sans-serif;
         }
 
-        /* PERBAIKAN HEADER: Dibuat benar-benar sticky dan background lebih solid */
+        /* Header Tetap Sticky & Background Solid */
         .header-glass {
             position: sticky;
             top: 0;
-            background: rgba(20, 18, 50, 0.85); /* Warna lebih padat biar gak tembus pandang banget */
+            background: rgba(20, 18, 50, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             padding: 20px 0;
-            z-index: 9999; /* Z-index ditinggikan agar selalu di posisi terdepan */
+            z-index: 9999;
         }
 
         .header-title {
@@ -47,7 +47,7 @@
             position: relative;
             max-width: 600px;
             margin: 0 auto;
-            padding: 0 15px; /* Tambahan padding untuk layar HP */
+            padding: 0 15px;
         }
 
         .form-control {
@@ -85,11 +85,11 @@
             margin-bottom: 40px;
         }
 
-        /* PERBAIKAN TABEL: Menghapus background putih bawaan bootstrap */
+        /* Table Transparan */
         .table {
             color: #e0e0e0;
             margin-bottom: 0;
-            --bs-table-bg: transparent; /* Paksa transparan */
+            --bs-table-bg: transparent;
         }
 
         .table > thead {
@@ -108,8 +108,9 @@
             border-color: rgba(255, 255, 255, 0.05);
             padding: 15px;
             vertical-align: middle;
-            background-color: transparent !important; /* Paksa baris menjadi transparan */
-            color: #ffffff; /* Paksa font warna putih */
+            background-color: transparent !important;
+            color: #ffffff;
+            line-height: 1.6;
         }
 
         .table > tbody > tr {
@@ -118,6 +119,18 @@
 
         .table > tbody > tr:hover > td {
             background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* FITUR BARU: Highlight text yang dicari dengan efek Glow Neon */
+        .highlight-text {
+            background-color: rgba(0, 198, 255, 0.3); /* Background biru muda transparan */
+            color: #00ffff; /* Warna teks cyan menyala */
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            box-shadow: 0 0 8px rgba(0, 198, 255, 0.6); /* Efek glow/menyala di sekitarnya */
+            display: inline-block;
+            transition: all 0.3s ease;
         }
 
         /* Custom Scrollbar */
@@ -183,7 +196,7 @@
                 .then(data => {
                     areaData = data;
                     document.getElementById('loader').style.display = 'none';
-                    renderTable(areaData);
+                    renderTable(areaData, ''); // Kirim parameter kosong di awal
                 })
                 .catch(error => {
                     console.error('Gagal mengambil data:', error);
@@ -191,7 +204,19 @@
                 });
         });
 
-        function renderTable(data) {
+        // Fungsi Helper untuk menambahkan class highlight pada teks yang cocok
+        function highlightMatch(text, searchWord) {
+            if (!searchWord) return text; // Jika pencarian kosong, kembalikan teks asli
+            
+            // Regex untuk mencari kata tanpa mempedulikan huruf besar/kecil (case-insensitive)
+            const regex = new RegExp(`(${searchWord})`, 'gi');
+            
+            // Mengganti kata yang cocok dengan span ber-class highlight-text
+            return text.replace(regex, '<span class="highlight-text">$1</span>');
+        }
+
+        // Fungsi render tabel sekarang menerima parameter tambahan: keyword yang sedang dicari
+        function renderTable(data, keyword) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = ''; 
 
@@ -202,10 +227,14 @@
                 else if(item.area === 'Area 3') badgeClass = 'bg-success';
                 else if(item.area === 'Area 4') badgeClass = 'bg-warning text-dark';
 
+                // Terapkan fungsi highlight ke data sebelum dicetak ke HTML
+                const displayProvinsi = highlightMatch(item.provinsi, keyword);
+                const displayKota = highlightMatch(item.kota, keyword);
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${item.provinsi}</td>
-                    <td>${item.kota}</td>
+                    <td>${displayProvinsi}</td>
+                    <td>${displayKota}</td>
                     <td><span class="badge ${badgeClass} bg-opacity-75">${item.area}</span></td>
                 `;
                 tbody.appendChild(tr);
@@ -214,12 +243,16 @@
 
         function searchTable() {
             const input = document.getElementById('searchInput').value.toLowerCase();
+            
+            // Filter data
             const filteredData = areaData.filter(item => 
                 item.provinsi.toLowerCase().includes(input) ||
                 item.kota.toLowerCase().includes(input) ||
                 item.area.toLowerCase().includes(input)
             );
-            renderTable(filteredData);
+            
+            // Render ulang tabel beserta kata kuncinya agar bisa di-highlight
+            renderTable(filteredData, input);
         }
     </script>
 
